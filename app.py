@@ -4,7 +4,7 @@ import joblib
 
 st.set_page_config(page_title="Water Quality Anomaly Detection System")
 
-st.title("💧 Water Quality Anomaly Detection System")
+st.title("Water Quality Anomaly Detection System")
 st.write("Enter water quality parameters to check if they are normal or anomalous.")
 
 # Load model and scaler
