@@ -1,58 +1,33 @@
 import streamlit as st
-import pandas as pd
+import numpy as np
 import joblib
 
-# Page title
-st.set_page_config(page_title="Water Quality Anomaly Detection", layout="wide")
+st.set_page_config(page_title="Water Quality Checker")
 
-st.title(" Water Quality Anomaly Detection")
-st.write("Upload your dataset to detect anomalies using Isolation Forest.")
+st.title("An Isolation Forest-Based Water Quality Anomaly Detection System")
+
+st.write("Enter water parameters to check if it's normal or anomalous.")
 
 # Load model
-@st.cache_resource
-def load_model():
-    return joblib.load("if_model.pkl")
+model = joblib.load("if_model.pkl")
 
-model = load_model()
+# 👉 INPUT FIELDS (CHANGE names according to YOUR features)
+ph = st.number_input("pH", value=7.0)
+do = st.number_input("Dissolved Oxygen (DO)", value=5.0)
+turbidity = st.number_input("Turbidity", value=10.0)
+temp = st.number_input("Temperature", value=25.0)
+ec = st.number_input("Electrical Conductivity (EC)", value=300.0)
+salinity = st.number_input("Salinity", value=0.5)
 
-# File uploader
-uploaded_file = st.file_uploader("Upload CSV file", type=["csv"])
+# Predict button
+if st.button("Check Water Quality"):
 
-if uploaded_file is not None:
-    try:
-        # Read data
-        df = pd.read_csv(uploaded_file)
+    # Must match EXACT training order
+    input_data = np.array([[ph, do, turbidity, temp, ec, salinity]])
 
-        st.subheader("📊 Data Preview")
-        st.dataframe(df.head())
+    prediction = model.predict(input_data)
 
-        # Ensure only numeric columns
-        df_numeric = df.select_dtypes(include=["number"])
-
-        if df_numeric.shape[1] == 0:
-            st.error("❌ No numeric columns found in the dataset.")
-        else:
-            # Prediction
-            predictions = model.predict(df_numeric)
-            df["Anomaly"] = predictions
-
-            st.subheader("✅ Detection Results")
-            st.dataframe(df)
-
-            # Show anomalies
-            anomalies = df[df["Anomaly"] == -1]
-
-            st.subheader("🚨 Detected Anomalies")
-            st.write(f"Total anomalies detected: {len(anomalies)}")
-            st.dataframe(anomalies)
-
-            # Simple visualization
-            if df_numeric.shape[1] >= 1:
-                st.subheader("📈 Visualization")
-                st.line_chart(df_numeric)
-
-    except Exception as e:
-        st.error(f"⚠️ Error processing file: {e}")
-
-else:
-    st.info("Please upload a CSV file to begin.")
+    if prediction[0] == 1:
+        st.success("✅ This is NORMAL water quality")
+    else:
+        st.error("🚨 This is ANOMALOUS water quality")
