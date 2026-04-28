@@ -2,32 +2,37 @@ import streamlit as st
 import numpy as np
 import joblib
 
-st.set_page_config(page_title="Water Quality Checker")
+st.set_page_config(page_title="Water Quality Anomaly Detection System")
 
-st.title("An Isolation Forest-Based Water Quality Anomaly Detection System")
+st.title("💧 Water Quality Anomaly Detection System")
+st.write("Enter water quality parameters to check if they are normal or anomalous.")
 
-st.write("Enter water parameters to check if it's normal or anomalous.")
-
-# Load model
+# Load model and scaler
 model = joblib.load("if_model.pkl")
+scaler = joblib.load("scaler.pkl")
 
-# 👉 INPUT FIELDS (CHANGE names according to YOUR features)
-ph = st.number_input("pH", value=7.0)
-do = st.number_input("Dissolved Oxygen (DO)", value=5.0)
-turbidity = st.number_input("Turbidity", value=10.0)
-temp = st.number_input("Temperature", value=25.0)
-ec = st.number_input("Electrical Conductivity (EC)", value=300.0)
-salinity = st.number_input("Salinity", value=0.5)
+st.subheader("Input Parameters")
 
-# Predict button
+# Input fields (same order as training)
+pH = st.number_input("pH", value=8.1)
+DO = st.number_input("Dissolved Oxygen", value=7.4)
+Temp = st.number_input("Temperature", value=20.0)
+Salinity = st.number_input("Salinity", value=35.2)
+Turbidity = st.number_input("Turbidity", value=2.0)
+Chlorophyll = st.number_input("Chlorophyll", value=1.6)
+
 if st.button("Check Water Quality"):
 
-    # Must match EXACT training order
-    input_data = np.array([[ph, do, turbidity, temp, ec, salinity]])
+    # Arrange input in correct order
+    input_data = np.array([[pH, DO, Temp, Salinity, Turbidity, Chlorophyll]])
 
-    prediction = model.predict(input_data)
+    # Apply scaling
+    input_scaled = scaler.transform(input_data)
+
+    # Predict
+    prediction = model.predict(input_scaled)
 
     if prediction[0] == 1:
-        st.success("✅ This is NORMAL water quality")
+        st.success("✅ Normal Water Quality")
     else:
-        st.error("🚨 This is ANOMALOUS water quality")
+        st.error("🚨 Anomalous Water Quality")
